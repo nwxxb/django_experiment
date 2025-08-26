@@ -7,6 +7,7 @@ def ping():
     return jsonify({"ping": "pong"})
 
 # from app.api import auth
-# from app.api import users
+from app.api.users import users_bp
+api_bp.register_blueprint(users_bp, url_prefix='/users')
 # from app.api import services
 # from app.api import appointments
