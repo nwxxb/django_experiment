@@ -4,11 +4,12 @@ from app.database import db
 
 migrate = Migrate()
  
-def create_app():
+def create_app(config_object):
     app = Flask(__name__)
+    app.config.from_object(config_object)
 
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    if not app.config['SECRET_KEY']:
+        raise ValueError("No SECRET_KEY set current environment")
 
     db.init_app(app)
     migrate.init_app(app, db)

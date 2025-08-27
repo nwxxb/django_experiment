@@ -7,29 +7,17 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from app import create_app
 from app.database import db
+from app.config import TestingConfig
 
 @pytest.fixture
 def app():
-    db_fd, db_path = tempfile.mkstemp()
-
-    app = create_app()
-    # Set the Flask app to testing mode
-    app.config["TESTING"] = True
-    app.config.update({
-        "TESTING": True,
-        "SQLALCHEMY_DATABASE_URI": f"sqlite:///{db_path}",
-        "WTF_CSRF_ENABLED": False,  # Disable CSRF for testing
-    })
+    app = create_app(TestingConfig)
 
     # Create tables
     with app.app_context():
         db.create_all()
         yield app
         db.drop_all()
-    
-    # Clean up temp file
-    os.close(db_fd)
-    os.unlink(db_path)
 
 @pytest.fixture
 def client(app):
