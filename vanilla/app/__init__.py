@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_migrate import Migrate
+from flask_jwt_extended import JWTManager
 from app.database import db
 
 migrate = Migrate()
@@ -15,6 +16,8 @@ def create_app(config_object):
     migrate.init_app(app, db)
 
     from app import models
+
+    jwt = JWTManager(app)
 
     from app.routes import routes_bp
     app.register_blueprint(routes_bp)

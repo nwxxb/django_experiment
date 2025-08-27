@@ -13,5 +13,8 @@ api_bp.register_blueprint(users_bp, url_prefix='/users')
 def signup():
     return create_user()
 
+from app.api.auth import auth_bp
+api_bp.register_blueprint(auth_bp)
+
 # from app.api import services
 # from app.api import appointments
