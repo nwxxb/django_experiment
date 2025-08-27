@@ -4,7 +4,8 @@ def test_user_create(client, db_session):
     request_data = {
             "username": "user", "email": "user@example.com", "role": UserRole.ADMIN.value
     }
-    response = client.post("/api/users", json=request_data)
+    # response = client.post("/api/users", json=request_data)
+    response = client.post("/api/signup", json=request_data)
 
     user = db_session.query(User).filter_by(email="user@example.com").first()
     assert user.to_dict() == {"id": 1, "username": "user", "email": "user@example.com", "role": "admin"}
