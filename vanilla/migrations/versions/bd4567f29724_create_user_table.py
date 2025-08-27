@@ -1,4 +1,4 @@
-"""Add role enum to user table
+"""Create User table
 
 Revision ID: bd4567f29724
 Revises: 
