@@ -14,7 +14,7 @@ def create_user():
         }), 400
 
     data = request.json
-    required_keys = ['username', 'email', 'role']
+    required_keys = ['username', 'email', 'role', 'password']
     is_request_body_valid = all(key in data and data[key] is not None for key in required_keys)
 
     if not is_request_body_valid:
@@ -29,6 +29,7 @@ def create_user():
             email=data.get('email'),
             role=UserRole(data.get('role'))
     )
+    user.set_password(data.get('password'))
     db.session.add(user)
 
     try:

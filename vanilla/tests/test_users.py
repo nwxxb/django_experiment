@@ -2,7 +2,7 @@ from app.models import User, UserRole
 
 def test_user_create(client, db_session):
     request_data = {
-            "username": "user", "email": "user@example.com", "role": UserRole.ADMIN.value
+            "username": "user", "email": "user@example.com", "role": UserRole.ADMIN.value, "password": "123"
     }
     # response = client.post("/api/users", json=request_data)
     response = client.post("/api/signup", json=request_data)
@@ -15,6 +15,7 @@ def test_user_create(client, db_session):
 
 def test_user_show(client, db_session):
     user = User(username="user_1", email="user_1@example.com", role=UserRole.PATIENT)
+    user.set_password('123')
     db_session.add(user)
     db_session.commit()
 
@@ -26,6 +27,7 @@ def test_user_show(client, db_session):
 
 def test_user_update(client, db_session):
     user = User(id=1, username="user_1", email="user_1@example.com", role=UserRole.PATIENT)
+    user.set_password('123')
     db_session.add(user)
     db_session.commit()
 
@@ -40,6 +42,7 @@ def test_user_update(client, db_session):
 
 def test_user_delete(client, db_session):
     user = User(username="user_1", email="user_1@example.com", role=UserRole.PATIENT)
+    user.set_password('123')
     db_session.add(user)
     db_session.commit()
 
