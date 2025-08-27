@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 from app.database import db
 from app.models import User, UserRole
+from sqlalchemy.exc import IntegrityError
 
 users_bp = Blueprint('users', __name__)
 
