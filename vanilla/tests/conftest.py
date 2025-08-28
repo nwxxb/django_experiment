@@ -8,6 +8,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from app import create_app
 from app.database import db
 from app.config import TestingConfig
+from app.models import User, UserRole
 
 @pytest.fixture
 def app():
@@ -31,3 +32,18 @@ def db_session(app):
         yield db.session
         # Rollback any changes after each test
         db.session.rollback()
+
+# model factory
+_sentinel = object()
+
+@pytest.fixture
+def user_factory():
+    def _user_factory(username, email=_sentinel, role=UserRole.PATIENT, password='password'):
+        if email is _sentinel:
+            email = f"{username}@example.com"
+
+        user = User(username=username, email=email, role=role)
+        user.set_password(password)
+
+        return user
+    return _user_factory

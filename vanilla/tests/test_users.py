@@ -13,9 +13,8 @@ def test_user_create(client, db_session):
     assert response.json["user"] == {"id": 1, "username": "user", "email": "user@example.com", "role": "admin"}
     assert response.json["status"] == "created"
 
-def test_user_show(client, db_session):
-    user = User(username="user_1", email="user_1@example.com", role=UserRole.PATIENT)
-    user.set_password('123')
+def test_user_show(client, db_session, user_factory):
+    user = user_factory(username="user_1", email="user_1@example.com", role=UserRole.PATIENT)
     db_session.add(user)
     db_session.commit()
 
@@ -25,9 +24,8 @@ def test_user_show(client, db_session):
     assert response.json["user"] == {"id": 1, "username": "user_1", "email": "user_1@example.com", "role": "patient"}
     assert response.json["status"] == "success"
 
-def test_user_update(client, db_session):
-    user = User(id=1, username="user_1", email="user_1@example.com", role=UserRole.PATIENT)
-    user.set_password('123')
+def test_user_update(client, db_session, user_factory):
+    user = user_factory(username="user_1", email="user_1@example.com", role=UserRole.PATIENT)
     db_session.add(user)
     db_session.commit()
 
@@ -40,9 +38,8 @@ def test_user_update(client, db_session):
     assert response.json["user"] == {"id": 1, "username": "user_1", "email": "new_user_1@example.com", "role": "doctor"}
     assert response.json["status"] == "updated"
 
-def test_user_delete(client, db_session):
-    user = User(username="user_1", email="user_1@example.com", role=UserRole.PATIENT)
-    user.set_password('123')
+def test_user_delete(client, db_session, user_factory):
+    user = user_factory(username="user_1", email="user_1@example.com", role=UserRole.PATIENT)
     db_session.add(user)
     db_session.commit()
 
