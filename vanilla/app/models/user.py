@@ -1,8 +1,9 @@
 from app.database import db
 from sqlalchemy import String, Enum as SQLEnum
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from werkzeug.security import generate_password_hash, check_password_hash
 from enum import Enum
+from typing import List
 
 class UserRole(Enum):
     PATIENT = "patient"
@@ -17,6 +18,8 @@ class User(db.Model):
     email: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
     _password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     role: Mapped[UserRole] = mapped_column(SQLEnum(UserRole), nullable=False)
+
+    services: Mapped[List["Service"]] = relationship(back_populates='doctor')
 
     def set_password(self, password):
         self._password_hash = generate_password_hash(password)

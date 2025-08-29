@@ -16,5 +16,7 @@ def signup():
 from app.api.auth import auth_bp
 api_bp.register_blueprint(auth_bp)
 
-# from app.api import services
+from app.api.services import services_bp
+api_bp.register_blueprint(services_bp, url_prefix='/services')
+
 # from app.api import appointments

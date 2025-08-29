@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from app import create_app
 from app.database import db
 from app.config import TestingConfig
-from app.models import User, UserRole
+from app.models import User, UserRole, Service
 
 @pytest.fixture
 def app():
@@ -47,3 +47,14 @@ def user_factory():
 
         return user
     return _user_factory
+
+@pytest.fixture
+def service_factory(user_factory):
+    def _service_factory(name, address, doctor=_sentinel):
+        if doctor is _sentinel:
+            doctor = user_factory(username='doctor1', role=UserRole.DOCTOR)
+
+        service = Service(name=name, address=address, doctor=doctor)
+
+        return service
+    return _service_factory
