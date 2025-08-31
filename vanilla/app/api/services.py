@@ -63,7 +63,7 @@ def create_service():
         db.session.rollback()
         print(f"An error occurred: {e}")
 
-    return jsonify({"service": service.to_dict(), "status": "created"}), 201
+    return jsonify({"service": service.to_dict(attach_assoc=['doctor']), "status": "created"}), 201
 
 @services_bp.route("/<int:service_id>", methods=['GET'])
 def show_service(service_id):
@@ -75,7 +75,7 @@ def show_service(service_id):
             "status": "not-found"
         }), 404
 
-    return jsonify({"service": service.to_dict(), "status": "success"})
+    return jsonify({"service": service.to_dict(attach_assoc=['doctor']), "status": "success"})
 
 @services_bp.route("/<int:service_id>", methods=['PUT'])
 def update_service(service_id):
@@ -105,9 +105,6 @@ def update_service(service_id):
     if 'doctor_id' in data and data['doctor_id'] is not None:
         doctor_id = data.get('doctor_id')
         doctor = db.session.get(User, doctor_id)
-        print("==============")
-        print(doctor)
-        print("==============")
         if doctor is None or doctor.role != UserRole.DOCTOR:
             return jsonify({
                 "error": "doctor not found",
@@ -122,7 +119,7 @@ def update_service(service_id):
         db.session.rollback()
         print(f"An error occurred: {e}")
 
-    return jsonify({"service": service.to_dict(), "status": "updated"})
+    return jsonify({"service": service.to_dict(attach_assoc=['doctor']), "status": "updated"})
 
 @services_bp.route("/<int:service_id>", methods=['DELETE'])
 def delete_service(service_id):
@@ -136,5 +133,5 @@ def delete_service(service_id):
 
     db.session.delete(service)
     db.session.commit()
-    return jsonify({"service": service.to_dict(attach_assoc=False), "status": "deleted"})
+    return jsonify({"service": service.to_dict(), "status": "deleted"})
 

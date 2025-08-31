@@ -15,7 +15,7 @@ def test_services_create(client, db_session, user_factory):
         }
     assert response.json["status"] == "created"
     service = db_session.get(Service, 1)
-    assert service.to_dict() == {
+    assert service.to_dict(attach_assoc=['doctor']) == {
             "id": 1, "name": "A Therapy", "address": "RS Puri, West Jakarta",
             "doctor": {"id": doctor.id, "username": doctor.username, "email": doctor.email, "role": doctor.role.value}
         }
@@ -76,7 +76,7 @@ def test_service_update(client, db_session, service_factory, user_factory):
         }
     assert response.json["status"] == "updated"
     service = db_session.get(Service, service.id)
-    assert service.to_dict() == {
+    assert service.to_dict(attach_assoc=['doctor']) == {
             "id": service.id, "name": "A New Health Service", "address": "A New Address",
             "doctor": {"id": new_doctor.id, "username": new_doctor.username, "email": new_doctor.email, "role": UserRole.DOCTOR.value}
         }

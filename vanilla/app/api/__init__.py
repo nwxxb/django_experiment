@@ -19,4 +19,5 @@ api_bp.register_blueprint(auth_bp)
 from app.api.services import services_bp
 api_bp.register_blueprint(services_bp, url_prefix='/services')
 
-# from app.api import appointments
+from app.api.appointments import appointments_bp
+api_bp.register_blueprint(appointments_bp, url_prefix='/appointments')
