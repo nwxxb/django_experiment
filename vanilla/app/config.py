@@ -6,17 +6,20 @@ class Config:
     JWT_SECRET_KEY = SECRET_KEY
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     WTF_CSRF_ENABLED = True
+    SQLALCHEMY_ECHO = os.environ.get('ECHO_DB', 'False') == 'True'
 
 class DevelopmentConfig(Config):
     """Development configuration."""
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', 'sqlite:///app.db')
+    SQLALCHEMY_ECHO = os.environ.get('ECHO_DB', 'True') == 'True'
 
 class TestingConfig(Config):
     """Testing configuration."""
     TESTING = True
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:' # Use an in-memory SQLite database
     WTF_CSRF_ENABLED = False # Disable CSRF for testing
+    SQLALCHEMY_ECHO = os.environ.get('ECHO_DB', 'True') == 'True'
 
 # class ProductionConfig(Config):
 #     """Production configuration."""
