@@ -2,6 +2,7 @@ from flask import Flask
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 from app.database import db
+from app.models import User, UserRole
 import logging.config
 import logging
 from sqlalchemy import log as sqlalchemy_log
@@ -52,6 +53,16 @@ def create_app(config_object):
     from app import models
 
     jwt = JWTManager(app)
+
+    @jwt.user_lookup_loader
+    def user_lookup_callback(_jwt_header, jwt_data):
+        if "sub" not in jwt_data or "role" not in jwt_data:
+            return None
+
+        identity = jwt_data["sub"]
+        role = jwt_data["role"]
+
+        return User.query.filter_by(id=identity, role=UserRole(role)).one_or_none()
 
     from app.routes import routes_bp
     app.register_blueprint(routes_bp)

@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 from app.database import db
 from app.models import User, UserRole, Service
+from flask_jwt_extended import jwt_required, current_user
 
 services_bp = Blueprint('services', __name__)
 
@@ -15,7 +16,15 @@ def index_service():
     return jsonify({"services": services_dict, "status": "success"})
 
 @services_bp.route("", methods=['POST'])
+@jwt_required()
 def create_service():
+    if current_user.role not in [UserRole.DOCTOR, UserRole.ADMIN]:
+        return jsonify({
+            "error": "Unauthorized",
+            "message": f"Signed-in user can't create this resources",
+            "status": "unauthorized"
+        }), 401
+
     if not request.json:
         return jsonify({
             "error": "Create Failed",
@@ -78,7 +87,15 @@ def show_service(service_id):
     return jsonify({"service": service.to_dict(attach_assoc=['doctor']), "status": "success"})
 
 @services_bp.route("/<int:service_id>", methods=['PUT'])
+@jwt_required()
 def update_service(service_id):
+    if current_user.role not in [UserRole.DOCTOR, UserRole.ADMIN]:
+        return jsonify({
+            "error": "Unauthorized",
+            "message": f"Signed-in user can't update this resources",
+            "status": "unauthorized"
+        }), 401
+
     if not request.json:
         return jsonify({
             "error": "Update Failed",
@@ -122,7 +139,15 @@ def update_service(service_id):
     return jsonify({"service": service.to_dict(attach_assoc=['doctor']), "status": "updated"})
 
 @services_bp.route("/<int:service_id>", methods=['DELETE'])
+@jwt_required()
 def delete_service(service_id):
+    if current_user.role not in [UserRole.ADMIN, UserRole.DOCTOR]:
+        return jsonify({
+            "error": "Unauthorized",
+            "message": f"Signed-in user can't update this resources",
+            "status": "unauthorized"
+        }), 401
+
     service = db.session.get(Service, service_id)
     if service is None:
         return jsonify({

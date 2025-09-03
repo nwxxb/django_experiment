@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 from flask_jwt_extended import create_access_token
 import pytest
 
-def test_appointments_create(client, db_session, service_factory, user_factory):
+def test_appointments_create(client, db_session, service_factory, user_factory, bearer_token_dict_factory):
     now = datetime.now(timezone.utc)
     appointment_date = now + timedelta(days=7)
     doctor = user_factory(username="doctor_1", email="doctor@example.com", role=UserRole.DOCTOR)
@@ -15,7 +15,7 @@ def test_appointments_create(client, db_session, service_factory, user_factory):
     db_session.add(patient)
     db_session.commit()
 
-    headers = { "Authorization": f"Bearer {create_access_token(identity=str(patient.id))}" }
+    headers = {} | bearer_token_dict_factory(patient)
     request_data = { "service_id": service.id, "scheduled_at": appointment_date.timestamp() }
     response = client.post("/api/appointments", headers=headers, json=request_data)
 
@@ -35,7 +35,7 @@ def test_appointments_create(client, db_session, service_factory, user_factory):
             "patient": {"id": patient.id, "username": patient.username, "email": patient.email, "role": patient.role.value}
         }
 
-def test_appointments_index_all(client, db_session, appointment_factory, user_factory):
+def test_appointments_index_all(client, db_session, appointment_factory, user_factory, bearer_token_dict_factory):
     current_user = user_factory(username="patient1", role=UserRole.PATIENT)
     patient2 = user_factory(username="patient2", role=UserRole.PATIENT)
     appointments = [
@@ -50,7 +50,7 @@ def test_appointments_index_all(client, db_session, appointment_factory, user_fa
     db_session.add_all(appointments)
     db_session.commit()
 
-    headers = { "Authorization": f"Bearer {create_access_token(identity=str(current_user.id))}" }
+    headers = {} | bearer_token_dict_factory(current_user)
     response = client.get(f"/api/appointments", headers=headers)
 
     assert response.status_code == 200
@@ -62,8 +62,9 @@ def test_appointments_index_all(client, db_session, appointment_factory, user_fa
     assert response.json["status"] == "success"
 
 
-def test_appointment_delete(client, db_session, appointment_factory, user_factory):
+def test_appointment_delete(client, db_session, appointment_factory, user_factory, bearer_token_dict_factory):
     current_user = user_factory(role=UserRole.PATIENT)
+
     appointment = appointment_factory(patient=current_user)
     db_session.add(appointment)
     db_session.commit()
@@ -72,7 +73,7 @@ def test_appointment_delete(client, db_session, appointment_factory, user_factor
     old_doctor = appointment.doctor
     old_patient = appointment.patient
 
-    headers = { "Authorization": f"Bearer {create_access_token(identity=str(current_user.id))}" }
+    headers = {} | bearer_token_dict_factory(current_user)
     response = client.delete(f"/api/appointments/{appointment.id}", headers=headers)
 
     appointment = db_session.get(Appointment, appointment.id)

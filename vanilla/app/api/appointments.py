@@ -3,7 +3,7 @@ from app.database import db
 from app.models import User, UserRole, Service, Appointment
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required, current_user
 from datetime import datetime, timezone
 
 appointments_bp = Blueprint('appointments', __name__)
@@ -11,9 +11,6 @@ appointments_bp = Blueprint('appointments', __name__)
 @appointments_bp.route("", methods=['GET'])
 @jwt_required()
 def index_appointment():
-    jwt_sid = get_jwt_identity()
-    current_user = db.session.get(User, jwt_sid)
-
     if current_user is None or current_user.role != UserRole.PATIENT:
         return jsonify({
             "error": "Create Failed",
@@ -39,8 +36,6 @@ def create_service():
             "status": "bad-request"
         }), 400
 
-    jwt_sid = get_jwt_identity()
-    current_user = db.session.get(User, jwt_sid)
     if current_user is None or current_user.role != UserRole.PATIENT:
         return jsonify({
             "error": "Create Failed",
@@ -98,8 +93,6 @@ def create_service():
 @appointments_bp.route("/<int:appointment_id>", methods=['DELETE'])
 @jwt_required()
 def delete_appointment(appointment_id):
-    jwt_sid = get_jwt_identity()
-    current_user = db.session.get(User, jwt_sid)
     if current_user is None or current_user.role != UserRole.PATIENT:
         return jsonify({
             "error": "Create Failed",

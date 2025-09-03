@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request
 from app.database import db
 from app.models import User, UserRole
 from sqlalchemy.exc import IntegrityError
+from flask_jwt_extended import jwt_required, current_user
 
 users_bp = Blueprint('users', __name__)
 
@@ -49,19 +50,31 @@ def create_user():
     return jsonify({"user": user.to_dict(), "status": "created"}), 201
 
 @users_bp.route("/<int:user_id>", methods=['GET'])
+@jwt_required()
 def show_user(user_id):
-    user = db.session.get(User, user_id)
-    if user is None:
-        return jsonify({
-            "error": "User not found",
-            "message": f"No user exists with ID {user_id}",
-            "status": "not-found"
-        }), 404
+    if user_id != current_user.id:
+        user = db.session.get(User, user_id)
+        if user is None:
+            return jsonify({
+                "error": "User not found",
+                "message": f"No user exists with ID {user_id}",
+                "status": "not-found"
+            }), 404
 
-    return jsonify({"user": user.to_dict(), "status": "success"})
+        return jsonify({"user": user.to_dict(), "status": "success"})
+    else:
+        return jsonify({"user": current_user.to_dict(), "status": "success"})
 
 @users_bp.route("/<int:user_id>", methods=['PUT'])
+@jwt_required()
 def update_user(user_id):
+    if current_user.id != user_id:
+        return jsonify({
+            "error": "Unauthorized",
+            "message": f"Signed-in user can't update user with ID {user_id}",
+            "status": "unauthorized"
+        }), 401
+
     if not request.json:
         return jsonify({
             "error": "Update Failed",
@@ -97,16 +110,17 @@ def update_user(user_id):
     return jsonify({"user": user.to_dict(), "status": "updated"})
 
 @users_bp.route("/<int:user_id>", methods=['DELETE'])
+@jwt_required()
 def delete_user(user_id):
-    user = db.session.get(User, user_id)
-    if user is None:
+    if current_user.id != user_id:
         return jsonify({
-            "error": "User not found",
-            "message": f"No user exists with ID {user_id}",
-            "status": "not-found"
-        }), 404
+            "error": "Unauthorized",
+            "message": f"Signed-in user can't update user with ID {user_id}",
+            "status": "unauthorized"
+        }), 401
 
-    db.session.delete(user)
+    old_user_data_dict = current_user.to_dict()
+    db.session.delete(current_user)
     db.session.commit()
-    return jsonify({"user": user.to_dict(), "status": "deleted"})
+    return jsonify({"user": old_user_data_dict, "status": "deleted"})
 

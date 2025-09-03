@@ -10,6 +10,7 @@ from app.database import db
 from app.config import TestingConfig
 from app.models import User, UserRole, Service, Appointment
 from datetime import datetime
+from flask_jwt_extended import create_access_token
 
 @pytest.fixture
 def app():
@@ -95,3 +96,10 @@ def appointment_factory(service_factory, user_factory):
 
         return appointment
     return _appointment_factory
+
+@pytest.fixture
+def bearer_token_dict_factory():
+    def _bearer_token_dict_factory(user):
+        jwt_token = create_access_token(identity=str(user.id), additional_claims={"role": user.role.value})
+        return { "Authorization": f"Bearer {jwt_token}" }
+    return _bearer_token_dict_factory
