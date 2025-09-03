@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, jsonify
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 from app.database import db
@@ -63,6 +63,30 @@ def create_app(config_object):
         role = jwt_data["role"]
 
         return User.query.filter_by(id=identity, role=UserRole(role)).one_or_none()
+
+    @jwt.user_lookup_error_loader
+    def user_not_found_callback(_jwt_header, _jwt_data):
+        return jsonify({
+            "error": "Invalid token",
+            "message": "Invalid token subject (subject not exist)",
+            "status": "invalid-token"
+        }), 401
+
+    @jwt.expired_token_loader
+    def token_expired_callback(_jwt_header, _jwt_data):
+        return jsonify({
+            "error": "Invalid token",
+            "message": "Token expired",
+            "status": "invalid-token"
+        }), 401
+
+    @jwt.invalid_token_loader
+    def token_invalid_callback(_):
+        return jsonify({
+            "error": "Invalid token",
+            "message": "Invalid token",
+            "status": "invalid-token"
+        }), 401
 
     from app.routes import routes_bp
     app.register_blueprint(routes_bp)
