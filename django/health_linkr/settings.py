@@ -45,8 +45,18 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "jwt_authentication.middleware.JWTAuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+]
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+JWT_ACCESS_TOKEN_LIFETIME = 30
+JWT_SUBJECT_ATTRIBUTES_AS_ADDITIONAL_CLAIMS = [
+    'role'
 ]
 
 ROOT_URLCONF = "health_linkr.urls"
