@@ -29,11 +29,16 @@ class PermissionSeeder:
                 app_label='appointments_api',
                 model='service'
         )
+        appointment_ct, _ = ContentType.objects.get_or_create(
+                app_label='appointments_api',
+                model='appointment'
+        )
         service_permissions = PermissionSeeder.create_crud_permissions(service_ct)
+        appointment_permissions = PermissionSeeder.create_crud_permissions(appointment_ct)
 
-        admin_group.permissions.set(service_permissions.values())
-        doctor_group.permissions.set(service_permissions.values())
-        patient_group.permissions.set([service_permissions["view_service"]])
+        admin_group.permissions.set([*service_permissions.values()])
+        doctor_group.permissions.set([*service_permissions.values()])
+        patient_group.permissions.set([service_permissions["view_service"], *appointment_permissions.values()])
 
         return {
                 "content_types": [service_ct],

@@ -7,5 +7,8 @@ urlpatterns = [
     path("services/<int:service_id>", views.show_service, name="show_service"),
     path("services/<int:service_id>/update", views.update_service, name="update_service"),
     path("services/<int:service_id>/delete", views.delete_service, name="delete_service"),
-    # path("users/<int:user_id>", views.user_detail_view, name="user-detail"),
+
+    path("appointments/create", views.create_appointment, name="create_appointment"),
+    path("appointments/", views.show_all_appointments, name="show_all_appointments"),
+    path("appointments/<int:appointment_id>/delete", views.delete_appointment, name="delete_appointment"),
 ]

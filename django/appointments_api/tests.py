@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 
 from django.test import TestCase, Client, override_settings
 from django.urls import reverse
@@ -8,7 +9,7 @@ from django.conf import settings
 
 from jwt_authentication.utils import JWTUtils
 from .seeders import PermissionSeeder
-from .models import Service
+from .models import Service, Appointment
 
 User = get_user_model()
 
@@ -193,3 +194,98 @@ class ServicesApiTests(TestCase):
         self.assertEqual(response.json()["status"], "deleted")
         self.assertFalse(Service.objects.filter(id=service_id).exists())
         self.assertTrue(User.objects.filter(id=doctor.id).exists())
+
+class AppointmentsApiTests(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.seed_data = PermissionSeeder.seed_all()
+        cls.admin_group, cls.doctor_group, cls.patient_group = cls.seed_data["groups"]
+
+    def setUp(self):
+        self.client = Client()
+
+    def test_create_appointment_success(self):
+        doctor_group = AppointmentsApiTests.doctor_group
+        doctor = User.objects.create_user(username='doctor1')
+        doctor.groups.add(doctor_group)
+        patient_group = AppointmentsApiTests.patient_group
+        patient = User.objects.create_user(username='patient1')
+        patient.groups.add(patient_group)
+        service = Service.objects.create(
+                name="service1", address="New Jersey", doctor=doctor
+        )
+
+        scheduled_at = datetime.now().timestamp()
+        data = {"scheduled_at": scheduled_at, "service_id": service.id}
+        headers = { "Authorization": f"Bearer {JWTUtils.generate_tokens(patient)}" }
+        response = self.client.post(
+                reverse("create_appointment"), json.dumps(data),
+                content_type="application/json", headers=headers
+        )
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.json()["appointment"], {
+            "id": 1, "scheduled_at": scheduled_at,
+            "service": {"id": service.id, "name": service.name, "address": service.address},
+            "doctor": {"id": doctor.id, "username": doctor.username},
+            "patient": {"id": patient.id, "username": patient.username},
+        })
+        self.assertEqual(response.json()["status"], "created")
+        appointment = Appointment.objects.get(id=response.json()["appointment"]["id"])
+        self.assertIsNotNone(appointment)
+        self.assertAlmostEqual(float(appointment.scheduled_at), scheduled_at, places=1)
+
+    def test_index_appointment_success(self):
+        doctor_group = AppointmentsApiTests.doctor_group
+        doctor = User.objects.create_user(username='doctor1')
+        doctor.groups.add(doctor_group)
+        patient_group = AppointmentsApiTests.patient_group
+        patient = User.objects.create_user(username='patient1')
+        patient.groups.add(patient_group)
+        service = Service.objects.create(
+                name="service1", address="New Jersey", doctor=doctor
+        )
+        appointment1 = Appointment.objects.create(
+                scheduled_at=datetime.now().timestamp(), service=service, doctor=doctor, patient=patient
+        )
+        appointment2 = Appointment.objects.create(
+                scheduled_at=datetime.now().timestamp(), service=service, doctor=doctor, patient=patient
+        )
+        appointment3 = Appointment.objects.create(
+                scheduled_at=datetime.now().timestamp(), service=service, doctor=doctor, patient=patient
+        )
+
+        headers = { "Authorization": f"Bearer {JWTUtils.generate_tokens(patient)}" }
+        response = self.client.get(
+                reverse("show_all_appointments"),
+                content_type="application/json", headers=headers
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.json()["appointments"]), 3)
+        self.assertEqual(response.json()["status"], "success")
+
+    def test_delete_appointment_success(self):
+        doctor_group = AppointmentsApiTests.doctor_group
+        doctor = User.objects.create_user(username='doctor1')
+        doctor.groups.add(doctor_group)
+        patient_group = AppointmentsApiTests.patient_group
+        patient = User.objects.create_user(username='patient1')
+        patient.groups.add(patient_group)
+        service = Service.objects.create(
+                name="service1", address="New Jersey", doctor=doctor
+        )
+        appointment = Appointment.objects.create(
+                scheduled_at=datetime.now().timestamp(), service=service, doctor=doctor, patient=patient
+        )
+
+        headers = { "Authorization": f"Bearer {JWTUtils.generate_tokens(patient)}" }
+        response = self.client.delete(
+                reverse("delete_appointment", kwargs={"appointment_id": appointment.id}),
+                content_type="application/json", headers=headers
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["status"], "deleted")
+        self.assertFalse(Appointment.objects.filter(id=appointment.id).exists())
